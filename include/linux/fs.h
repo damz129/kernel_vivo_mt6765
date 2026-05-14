@@ -42,6 +42,7 @@
 #include <asm/byteorder.h>
 #include <uapi/linux/fs.h>
 
+extern int path_umount(struct path *path, int flags);
 struct backing_dev_info;
 struct bdi_writeback;
 struct bio;
