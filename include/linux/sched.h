@@ -490,7 +490,12 @@ struct sched_entity {
 
 	ANDROID_KABI_RESERVE(1);
 	ANDROID_KABI_RESERVE(2);
+#ifdef CONFIG_KSU_SUSFS
+	u64				android_kabi_reserved3;
+	u64				android_kabi_reserved4;
+#else
 	ANDROID_KABI_RESERVE(3);
+#endif
 	ANDROID_KABI_RESERVE(4);
 };
 
