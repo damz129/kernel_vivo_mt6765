@@ -1304,8 +1304,13 @@ struct task_struct {
 
 	ANDROID_KABI_RESERVE(1);
 	ANDROID_KABI_RESERVE(2);
+#ifdef CONFIG_KSU_SUSFS
+	u64				android_kabi_reserved3;
+	u64				android_kabi_reserved4;
+#else
 	ANDROID_KABI_RESERVE(3);
 	ANDROID_KABI_RESERVE(4);
+#endif
 	ANDROID_KABI_RESERVE(5);
 	ANDROID_KABI_RESERVE(6);
 	ANDROID_KABI_RESERVE(7);
