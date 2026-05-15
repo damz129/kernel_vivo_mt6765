@@ -495,8 +495,8 @@ struct sched_entity {
 	u64				android_kabi_reserved4;
 #else
 	ANDROID_KABI_RESERVE(3);
-#endif
 	ANDROID_KABI_RESERVE(4);
+#endif
 };
 
 struct sched_rt_entity {
