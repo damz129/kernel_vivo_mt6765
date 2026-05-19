@@ -3458,11 +3458,11 @@ static noinline int do_init_module(struct module *mod)
 {
 	int ret = 0;
 	struct mod_initfree *freeinit;
-
-	if (mod->name && strcmp(mod->name, "trace_mmstat") == 0) {
-        pr_info("OAI_PATCH: Blocking risky module: %s to prevent Panic\n", mod->name);
-        return -EPERM; 
-    }
+	
+	if (mod->name[0] && strcmp(mod->name, "trace_mmstat") == 0) {
+    	pr_info("OAI_PATCH: Blocking risky module: %s to prevent Panic\n", mod->name);
+    	return -EPERM; 
+	}
 
 	freeinit = kmalloc(sizeof(*freeinit), GFP_KERNEL);
 	if (!freeinit) {

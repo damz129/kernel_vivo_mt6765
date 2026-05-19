@@ -6,7 +6,6 @@
 export PATH="/workspaces/kernel_vivo_mt6765/clang-aosp/bin:/workspaces/kernel_vivo_mt6765/gcc-64/bin:/workspaces/kernel_vivo_mt6765/gcc-32/bin:$PATH"
 rm -rf out
 mkdir -p out
-
 make O=out ARCH=arm64 \
     CC=clang \
     CLANG_TRIPLE=aarch64-linux-gnu- \
