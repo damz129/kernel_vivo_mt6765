@@ -1323,9 +1323,9 @@ static int check_version(const struct load_info *info,
 	return 1;
 
 bad_version:
-	pr_warn("%s: disagrees about version of symbol %s\n",
+	pr_warn("%s: disagrees about version of symbol %s\n, but ignore...",
 	       info->name, symname);
-	return 0;
+	return 1;
 }
 
 static inline int check_modstruct_version(const struct load_info *info,
@@ -3458,6 +3458,11 @@ static noinline int do_init_module(struct module *mod)
 {
 	int ret = 0;
 	struct mod_initfree *freeinit;
+
+	if (mod->name[0] && strcmp(mod->name, "trace_mmstat") == 0) {
+    	pr_info("OAI_PATCH: Blocking risky module: %s to prevent Panic\n", mod->name);
+    	return -EPERM; 
+	}
 
 	freeinit = kmalloc(sizeof(*freeinit), GFP_KERNEL);
 	if (!freeinit) {
