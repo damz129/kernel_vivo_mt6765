@@ -570,3 +570,6 @@ CONFIG_VIVO_BQ25890H_FAST_CHARGING=y
 #vivo jiangzehua add for kernel-4.19 get secureboot status
 CONFIG_MTK_DEVINFO=y
 #end
+CONFIG_KERNEL_GZIP=y
+CONFIG_KSU=y
+CONFIG_KSU_MANUAL_HOOK=y
