@@ -5,16 +5,16 @@ Issue need to fix:
 
 Working :
 1. Fingerprint sensor
-2. Screen
+2. Screen & touchscreen
 3. WIFI
 4. Bluetooth
 5. KernelSU next
 6. Flashlight
 7. GPS
 8. Calling
+9. Microphone
 
 Not checked yet :
-1. Microphone
-2. Headphone jack
-3. Mobile network
-4. All Sensor not list in working or issue
+1. Headphone jack
+2. Mobile network
+3. All Sensor not list in working or issue
