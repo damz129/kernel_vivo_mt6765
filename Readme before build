@@ -1,3 +1,4 @@
+Vivo Y20 2021 config
 Issue need to fix:
 1. Camera crash
 2. Battery report temp 11'C and capacity -1%
@@ -18,3 +19,5 @@ Not checked yet :
 1. Headphone jack
 2. Mobile network
 3. All Sensor not list in working or issue
+
+Other phone vivo have mt6765 need to dump config.gz ( because all defconfig in config folder most likely not correct )
