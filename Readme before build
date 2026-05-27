@@ -20,4 +20,4 @@ Not checked yet :
 2. Mobile network
 3. All Sensor not list in working or issue
 
-Other phone vivo have mt6765 need to dump config.gz ( because all defconfig in config folder most likely not correct )
+Other phone vivo have mt6765 need to dump config.gz ( because all defconfig in config folder most likely not work correctly )
