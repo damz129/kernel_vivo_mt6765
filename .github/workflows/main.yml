@@ -288,7 +288,7 @@ jobs:
       if: env.RULE_SELINUX == 'true' && env.ENABLE_KERNELSU == 'true'
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-             -L https://raw.githubusercontent.com/${{ github.repository }}/main/rule/rule.c \
+             -L https://raw.githubusercontent.com/${{ github.repository }}/build-kernel/drivers/kernelsu/selinux/rule.c \
              -o kernel_workspace/android-kernel/drivers/kernelsu/selinux/rule.c
 
     - name: Clean Kconfig Files
@@ -301,7 +301,7 @@ jobs:
       if: env.COMPAT_FIX == 'true' && env.ENABLE_KERNELSU == 'true'
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-             -L https://raw.githubusercontent.com/${{ github.repository }}/main/compat/kernel_compat.h \
+             -L https://raw.githubusercontent.com/${{ github.repository }}/build-kernel/drivers/kernelsu/compat/kernel_compat.h \
              -o kernel_workspace/android-kernel/drivers/kernelsu/compat/kernel_compat.h
         
     - name: Build kernel
