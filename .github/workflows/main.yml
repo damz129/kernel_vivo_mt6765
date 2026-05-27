@@ -1,4 +1,4 @@
-name: Placeholder
+name: Build kernel (Run workflow on build-kernel branch)
 on:
   workflow_dispatch:
 jobs:
