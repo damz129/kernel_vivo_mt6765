@@ -1,8 +1,8 @@
 Vivo Y20 2021 config
 Issue need to fix:
-1. Camera crash
+1. Camera crash (forgot replace DTB)
 2. Battery report temp 11'C and capacity -1%
-3. Audio not working
+3. Audio not working (forgot replace DTB)
 
 Working :
 1. Fingerprint sensor
