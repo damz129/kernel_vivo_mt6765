@@ -195,7 +195,7 @@ jobs:
         fi
 
     - name: Download source boot image
-      if: env.BUILD_BOOT_IMG == 'true' && env.LFS == 'false'
+      if: env.BUILD_BOOT_IMG == 'true' && env.LFS != 'true'
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
