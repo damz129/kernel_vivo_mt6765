@@ -21,7 +21,7 @@ jobs:
             ENABLE_ANYKERNEL3
             RULE_SELINUX
             LFS
-            COMPAT_FIX
+            KSU_COMPAT_FIX
             KERNEL_SOURCE
             KERNEL_SOURCE_BRANCH
             KERNEL_CONFIG
@@ -299,7 +299,7 @@ jobs:
         echo "Clean finish"
 
     - name: Fix compat error
-      if: env.COMPAT_FIX == 'true' && env.ENABLE_KERNELSU == 'true'
+      if: env.KSU_COMPAT_FIX == 'true' && env.ENABLE_KERNELSU == 'true'
       run: |
         curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
              -L https://raw.githubusercontent.com/${{ github.repository }}/build-kernel/drivers/kernelsu/compat/kernel_compat.h \
