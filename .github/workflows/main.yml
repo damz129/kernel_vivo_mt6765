@@ -6,9 +6,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Dummy
-        shell: bash
         run: |
-          echo "RED=\033[0;31m" >> $GITHUB_ENV
-          echo "GREEN=\033[0;32m" >> $GITHUB_ENV
-          echo "NORMAL=\033[0m" >> $GITHUB_ENV
-          echo -e "${{ env.GREEN }}Hello${{ env.NORMAL }}"
+           echo -e "\e[31mThis is Red Text\e[0m"
+           echo -e "\e[32mThis is Green Text\e[0m"
+           echo -e "\e[34mThis is Blue Text\e[0m"
+           echo -e "\e[33mThis is Yellow Text\e[0m"
