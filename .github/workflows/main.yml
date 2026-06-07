@@ -18,7 +18,7 @@ jobs:
       run: |
         CONFIG_ENV=$(grep -w "CONFIG_ENV" config.env | head -n 1 | cut -d "=" -f 2)
         CONFIG_LIST=(
-            USE_ANYKERNEL3
+            ENABLE_ANYKERNEL3
             RULE_SELINUX
             LFS
             COMPAT_FIX
@@ -346,7 +346,7 @@ jobs:
        fi
 
     - name: Make Anykernel3
-      if: env.CHECK_FILE_IS_OK == 'true' && env.USE_CUSTOM_ANYKERNEL3 != 'true' && env.USE_ANYKERNEL3 == 'true'
+      if: env.CHECK_FILE_IS_OK == 'true' && env.USE_CUSTOM_ANYKERNEL3 != 'true' && env.ENABLE_ANYKERNEL3 == 'true'
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace
         git clone https://github.com/osm0sis/AnyKernel3 --depth=1 AnyKernel3
@@ -362,7 +362,7 @@ jobs:
         rm -rf AnyKernel3/.git* AnyKernel3/README.md
 
     - name: Make Custom-Anykernel3
-      if: env.CHECK_FILE_IS_OK == 'true' && env.USE_CUSTOM_ANYKERNEL3 == 'true' && env.USE_ANYKERNEL3 != 'true'
+      if: env.CHECK_FILE_IS_OK == 'true' && env.USE_CUSTOM_ANYKERNEL3 == 'true'
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace
         if [[ ${{ env.CUSTOM_ANYKERNEL3_SOURCE }} =~ git ]]; then
@@ -408,7 +408,7 @@ jobs:
         retention-days: 7
 
     - name: Upload AnyKernel3
-      if: env.CHECK_FILE_IS_OK == 'true' && env.USE_ANYKERNEL3 == 'true'
+      if: env.CHECK_FILE_IS_OK == 'true' && env.ENABLE_ANYKERNEL3 == 'true'
       uses: actions/upload-artifact@v7.0.1
       with:
         name: AnyKernel3${{ env.LOCALVERSION }}${{ env.UPLOADNAME }}-${{ env.DEVICE }}-${{ env.BUILD_TIME }}
