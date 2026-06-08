@@ -11,3 +11,5 @@ jobs:
            echo -e "\e[32mThis is Green Text\e[0m"
            echo -e "\e[34mThis is Blue Text\e[0m"
            echo -e "\e[33mThis is Yellow Text\e[0m"
+           ls
+           pwd
