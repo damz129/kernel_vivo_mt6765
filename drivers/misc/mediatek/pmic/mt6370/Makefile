@@ -17,3 +17,4 @@ obj-$(CONFIG_MT6370_PMU_RGBLED)		+= mt6370_pmu_rgbled.o
 ifneq ($(CONFIG_VIVO_CHARGING_NEW_ARCH),y)
 obj-$(CONFIG_MT6370_PMU_CHARGER)	+= mt6370_pmu_charger.o
 endif
+endif
