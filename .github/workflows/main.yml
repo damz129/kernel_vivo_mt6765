@@ -18,6 +18,7 @@ jobs:
       run: |
         CONFIG_ENV=$(grep -w "CONFIG_ENV" config.env | head -n 1 | cut -d "=" -f 2)
         CONFIG_LIST=(
+            EXPORT_CONFIG
             ENABLE_ANYKERNEL3
             RULE_SELINUX
             LFS
@@ -326,6 +327,10 @@ jobs:
         cp Image kernel
         gzip -n -9 kernel
         echo "KERNEL_IMAGE_NAME=kernel.gz" >> $GITHUB_ENV
+        if [ ${{ env.EXPORT_CONFIG }} = true ]; then
+            cd out
+            mv .config config
+        fi
 
     - name: Check a kernel output files
       run: |
@@ -405,7 +410,7 @@ jobs:
         name: ${{ env.KERNEL_IMAGE_NAME }}${{ env.LOCALVERSION }}${{ env.UPLOADNAME }}-${{ env.DEVICE }}-${{ env.BUILD_TIME }}
         path: kernel_workspace/android-kernel/out/arch/${{ env.ARCH }}/boot/${{ env.KERNEL_IMAGE_NAME }}
         if-no-files-found: error
-        retention-days: 4
+        retention-days: 3
 
     - name: Upload AnyKernel3
       if: env.CHECK_FILE_IS_OK == 'true' && env.ENABLE_ANYKERNEL3 == 'true'
@@ -414,7 +419,7 @@ jobs:
         name: AnyKernel3${{ env.LOCALVERSION }}${{ env.UPLOADNAME }}-${{ env.DEVICE }}-${{ env.BUILD_TIME }}
         path: kernel_workspace/AnyKernel3/*
         if-no-files-found: error
-        retention-days: 4
+        retention-days: 3
 
     - name: Upload DTBO image
       if: env.CHECK_DTBO_IS_OK == 'true'
@@ -423,7 +428,7 @@ jobs:
         name: dtbo-${{ env.DEVICE }}-${{ env.BUILD_TIME }}
         path: kernel_workspace/android-kernel/out/arch/${{ env.ARCH }}/boot/dtbo.img
         if-no-files-found: error
-        retention-days: 4   
+        retention-days: 3   
 
     - name: Upload boot image
       if: env.MAKE_BOOT_IMAGE_IS_OK == 'true'
@@ -432,4 +437,13 @@ jobs:
         name: boot${{ env.LOCALVERSION }}${{ env.UPLOADNAME }}-${{ env.DEVICE }}-${{ env.BUILD_TIME }}
         path: kernel_workspace/boot.img
         if-no-files-found: error
-        retention-days: 4
+        retention-days: 3
+
+    - name: Upload out/.config
+      if: env.EXPORT_CONFIG == 'true'
+      uses: actions/upload-artifact@v7.0.1
+      with:
+        name: Config
+        path: kernel_workspace/android-kernel/out/config
+        if-no-files-found: error
+        retention-days: 7
