@@ -317,6 +317,9 @@ jobs:
           export KSU_EXPECTED_SIZE=${{ env.KSU_EXPECTED_SIZE }}
           export KSU_EXPECTED_HASH=${{ env.KSU_EXPECTED_HASH }}
         fi
+        if [ ${{ env.EXPORT_CONFIG }} = true ]; then
+            cp out/.config config.txt
+        fi
         make -j$(nproc --all) CC=clang O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.KERNEL_CONFIG }}
         if [ ${{ env.ENABLE_CCACHE }} = true ]; then
             make -j$(nproc --all) CC="ccache clang" O=out ARCH=${{ env.ARCH }} ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{env.KERNEL_IMAGE_NAME}}
@@ -327,11 +330,7 @@ jobs:
         cp Image kernel
         gzip -n -9 kernel
         echo "KERNEL_IMAGE_NAME=kernel.gz" >> $GITHUB_ENV
-        if [ ${{ env.EXPORT_CONFIG }} = true ]; then
-            cd out
-            mv .config config
-        fi
-
+    
     - name: Check a kernel output files
       run: |
        cd $GITHUB_WORKSPACE/kernel_workspace
@@ -444,6 +443,6 @@ jobs:
       uses: actions/upload-artifact@v7.0.1
       with:
         name: Config
-        path: kernel_workspace/android-kernel/out/config
+        path: kernel_workspace/android-kernel/config.txt
         if-no-files-found: error
         retention-days: 7
