@@ -15,7 +15,7 @@ put the arm-linux-androideabi-4.9 folder in the $(kernel directory)/ path
 $ ./build_kernel.sh
 
 2. Output files
-- Kernel : $(kernel directory)/out/arch/arm/boot/zImage
+- Kernel : $(kernel directory)/out/arch/arm/boot/Image.gz
 
 3. How to Clean
 $ rm -rf $(kernel directory)/out
