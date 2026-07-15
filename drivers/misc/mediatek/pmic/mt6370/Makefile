@@ -13,8 +13,8 @@ obj-$(CONFIG_MT6370_PMU_DSV)		+= mt6370_pmu_dsv.o mt6370_pmu_dsv_debugfs.o
 obj-$(CONFIG_MT6370_PMU_FLED)		+= mt6370_pmu_fled.o
 obj-$(CONFIG_MT6370_PMU_BLED)		+= mt6370_pmu_bled.o
 obj-$(CONFIG_MT6370_PMU_RGBLED)		+= mt6370_pmu_rgbled.o
+endif
 
 ifneq ($(CONFIG_VIVO_CHARGING_NEW_ARCH),y)
 obj-$(CONFIG_MT6370_PMU_CHARGER)	+= mt6370_pmu_charger.o
-endif
 endif
