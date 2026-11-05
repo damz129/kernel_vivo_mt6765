@@ -36,23 +36,30 @@ jobs:
 
       - name: Verify and generate PD2036F KSU configuration
         run: |
+          set -euo pipefail
+          # Normalize legacy CRLF Kconfig files before parsing.
+          find . -name 'Kconfig*' -type f -exec sed -i 's/\r$//' {} +
           grep -qx 'CONFIG_MTK_CAM_PD2036F_EX=y' arch/arm64/configs/PD2036F_EX_KSU_defconfig
           grep -qx 'CONFIG_MTK_TINYSYS_SCP_SUPPORT=y' arch/arm64/configs/PD2036F_EX_KSU_defconfig
           grep -qx 'CONFIG_KSU=y' arch/arm64/configs/PD2036F_EX_KSU_defconfig
-          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- PD2036F_EX_KSU_defconfig
-          grep -qx 'CONFIG_MTK_CAM_PD2036F_EX=y' .config
-          grep -qx 'CONFIG_MTK_TINYSYS_SCP_SUPPORT=y' .config
-          grep -qx 'CONFIG_KSU=y' .config
+          grep -qx 'CONFIG_SND_SOC_AW87XXX=y' arch/arm64/configs/PD2036F_EX_KSU_defconfig
+          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- O=out PD2036F_EX_KSU_defconfig
+          test -s out/.config
+          grep -qx 'CONFIG_MTK_CAM_PD2036F_EX=y' out/.config
+          grep -qx 'CONFIG_MTK_TINYSYS_SCP_SUPPORT=y' out/.config
+          grep -qx 'CONFIG_KSU=y' out/.config
+          grep -qx 'CONFIG_SND_SOC_AW87XXX=y' out/.config
+          echo 'Verified: camera, SCP, KSU and AW87XXX are enabled in out/.config'
 
       - name: Build target kernel DTB
         run: |
-          make -j2 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- mediatek/k65v1_64_bsp_PD2036F_EX.dtb
-          test -s arch/arm64/boot/dts/mediatek/k65v1_64_bsp_PD2036F_EX.dtb
+          make -j2 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- O=out mediatek/k65v1_64_bsp_PD2036F_EX.dtb
+          test -s out/arch/arm64/boot/dts/mediatek/k65v1_64_bsp_PD2036F_EX.dtb
 
       - name: Decompile and round-trip validate kernel DTB
         run: |
           mkdir -p out/device-tree/kernel
-          DTB=arch/arm64/boot/dts/mediatek/k65v1_64_bsp_PD2036F_EX.dtb
+          DTB=out/arch/arm64/boot/dts/mediatek/k65v1_64_bsp_PD2036F_EX.dtb
           scripts/dtc/dtc -I dtb -O dts -o out/device-tree/kernel/pd2036f-kernel.dts "$DTB"
           scripts/dtc/dtc -I dts -O dtb -o out/device-tree/kernel/pd2036f-roundtrip.dtb out/device-tree/kernel/pd2036f-kernel.dts
           scripts/dtc/dtc -I dtb -O dts -o out/device-tree/kernel/pd2036f-roundtrip.dts out/device-tree/kernel/pd2036f-roundtrip.dtb
