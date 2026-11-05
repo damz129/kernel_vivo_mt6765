@@ -79,11 +79,14 @@ jobs:
 
       - name: Decompile and round-trip validate kernel DTB
         run: |
+          set -euo pipefail
           mkdir -p out/device-tree/kernel
           DTB=out/arch/arm64/boot/dts/mediatek/k65v1_64_bsp_PD2036F_EX.dtb
-          scripts/dtc/dtc -I dtb -O dts -o out/device-tree/kernel/pd2036f-kernel.dts "$DTB"
-          scripts/dtc/dtc -I dts -O dtb -o out/device-tree/kernel/pd2036f-roundtrip.dtb out/device-tree/kernel/pd2036f-kernel.dts
-          scripts/dtc/dtc -I dtb -O dts -o out/device-tree/kernel/pd2036f-roundtrip.dts out/device-tree/kernel/pd2036f-roundtrip.dtb
+          DTC=out/scripts/dtc/dtc
+          test -x "$DTC"
+          "$DTC" -I dtb -O dts -o out/device-tree/kernel/pd2036f-kernel.dts "$DTB"
+          "$DTC" -I dts -O dtb -o out/device-tree/kernel/pd2036f-roundtrip.dtb out/device-tree/kernel/pd2036f-kernel.dts
+          "$DTC" -I dtb -O dts -o out/device-tree/kernel/pd2036f-roundtrip.dts out/device-tree/kernel/pd2036f-roundtrip.dtb
           test -s out/device-tree/kernel/pd2036f-kernel.dts
           test -s out/device-tree/kernel/pd2036f-roundtrip.dtb
 
@@ -149,7 +152,7 @@ jobs:
             echo
             echo "- Defconfig: PD2036F_EX_KSU_defconfig"
             echo "- Kernel DTB: arch/arm64/boot/dts/mediatek/k65v1_64_bsp_PD2036F_EX.dtb"
-            echo "- DTC: scripts/dtc/dtc"
+            echo "- DTC: out/scripts/dtc/dtc"
             echo
             echo "## Generated files"
             find out/device-tree -type f -printf '%p (%s bytes)\n' | sort
