@@ -64,8 +64,18 @@ jobs:
 
       - name: Build target kernel DTB
         run: |
+          set -euo pipefail
           make -j2 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- O=out mediatek/k65v1_64_bsp_PD2036F_EX.dtb
           test -s out/arch/arm64/boot/dts/mediatek/k65v1_64_bsp_PD2036F_EX.dtb
+
+          echo "--- DTC executable diagnostics ---"
+          echo "PATH dtc:"
+          command -v dtc || true
+          echo "Executable named dtc in source tree:"
+          find scripts -type f -name dtc -executable -print 2>/dev/null || true
+          echo "DTC files in output tree:"
+          find out -type f -name dtc -print 2>/dev/null || true
+          echo "--- End DTC diagnostics ---"
 
       - name: Decompile and round-trip validate kernel DTB
         run: |
