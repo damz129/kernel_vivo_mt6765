@@ -1,6 +1,13 @@
 name: PD2036F Build DTB + DTC Audit
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - ci/pd2036f-dtb-audio-camera
+    paths:
+      - '.github/workflows/dtb.yml'
+      - 'config.env'
+      - 'arch/arm64/configs/**'
 
 jobs:
   build:
@@ -189,6 +196,12 @@ jobs:
         else
           echo "LOCALVERSION=" >> $GITHUB_ENV
         fi
+
+    - name: Setup KernelSU (match kernel build workflow)
+      if: env.ENABLE_KERNELSU == 'true'
+      run: |
+        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
+        curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s legacy
 
     - name: Setup ccache
       if: env.ENABLE_CCACHE == 'true'
