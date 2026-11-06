@@ -32,7 +32,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential bc bison flex libssl-dev libelf-dev libyaml-dev pkg-config gcc-aarch64-linux-gnu device-tree-compiler python3
+          sudo apt-get install -y build-essential bc bison flex libssl-dev libelf-dev libyaml-dev pkg-config gcc-aarch64-linux-gnu python3
 
       # Match the KernelSU Next setup used by .github/workflows/main.yml
       - name: Setup KernelSU Next
@@ -104,7 +104,10 @@ jobs:
               dtb = out / f"{name}.dtb"
               dts = out / f"{name}.dts"
               dtb.write_bytes(data)
-              subprocess.run(["dtc", "-I", "dtb", "-O", "dts", "-o", str(dts), str(dtb)], check=True)
+              dtc = pathlib.Path("out/scripts/dtc/dtc")
+              if not dtc.is_file() or not os.access(dtc, os.X_OK):
+                  raise SystemExit(f"Kernel-built DTC is missing or not executable: {dtc}")
+              subprocess.run([str(dtc), "-I", "dtb", "-O", "dts", "-o", str(dts), str(dtb)], check=True)
               print(f"Decoded {name}: {len(data)} bytes -> {dts}")
 
           dtb_path = os.environ.get("STOCK_DTB_PATH", "").strip()
@@ -122,17 +125,17 @@ jobs:
               blob = p.read_bytes()
               if len(blob) < 4:
                   raise SystemExit("DTBO input is too small")
-              magic = struct.unpack_from("<I", blob, 0)[0]
+              magic = struct.unpack_from(">I", blob, 0)[0]
               if magic == 0xD7B7AB1E:
                   if len(blob) < 32:
                       raise SystemExit("Android DT table header is truncated")
-                  _, total, header_size, entry_size, count, entries_off, page_size, version = struct.unpack_from("<8I", blob, 0)
+                  _, total, header_size, entry_size, count, entries_off, page_size, version = struct.unpack_from(">8I", blob, 0)
                   if total > len(blob) or header_size < 32 or entry_size < 32 or entries_off + count * entry_size > total:
                       raise SystemExit("Invalid Android DT table header/entry bounds")
                   print(f"Android DT table: entries={count}, page_size={page_size}, version={version}")
                   for i in range(count):
                       off = entries_off + i * entry_size
-                      size, offset = struct.unpack_from("<2I", blob, off)
+                      size, offset = struct.unpack_from(">2I", blob, off)
                       if size == 0 or offset + size > total:
                           raise SystemExit(f"Invalid DTBO entry {i}: offset={offset}, size={size}")
                       entry = blob[offset:offset+size]
@@ -153,6 +156,7 @@ jobs:
             echo "- Defconfig: PD2036F_EX_KSU_defconfig"
             echo "- Kernel DTB: arch/arm64/boot/dts/mediatek/k65v1_64_bsp_PD2036F_EX.dtb"
             echo "- DTC: out/scripts/dtc/dtc"
+            echo "- DTC version: $(out/scripts/dtc/dtc --version)"
             echo
             echo "## Generated files"
             find out/device-tree -type f -printf '%p (%s bytes)\n' | sort
@@ -168,6 +172,14 @@ jobs:
           name: pd2036f-device-tree-lab
           path: |
             out/device-tree/
-            arch/arm64/boot/dts/mediatek/k65v1_64_bsp_PD2036F_EX.dtb
+            out/arch/arm64/boot/dts/mediatek/k65v1_64_bsp_PD2036F_EX.dtb
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload kernel-built DTC executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: pd2036f-dtc-tool
+          path: out/scripts/dtc/dtc
           if-no-files-found: error
           retention-days: 14
