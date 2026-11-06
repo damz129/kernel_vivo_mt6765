@@ -1,0 +1,85 @@
+name: PD2036F Kernel ABI Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  kernel-abi-audit:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+    steps:
+      - name: Checkout experimental branch
+        uses: actions/checkout@v4
+        with:
+          ref: ci/pd2036f-dtb-audio-camera
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential bc bison flex libssl-dev libelf-dev libncurses-dev dwarves gcc-aarch64-linux-gnu python3
+
+      - name: Setup KernelSU Next
+        run: |
+          set -euo pipefail
+          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s legacy
+          test -d drivers/kernelsu
+
+      - name: Generate and verify kernel configuration
+        run: |
+          set -euo pipefail
+          find . -name 'Kconfig*' -type f -exec sed -i 's/\r$//' {} +
+          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- O=out PD2036F_EX_KSU_defconfig
+          grep -qx 'CONFIG_MODVERSIONS=y' out/.config
+          grep -qx 'CONFIG_SND_SOC_MT6357_ACCDET=m' out/.config
+          grep -qx 'CONFIG_SND_SOC_AW87XXX=y' out/.config
+          grep -qx '# CONFIG_RANDOMIZE_BASE is not set' out/.config
+          {
+            echo "# PD2036F ABI audit"
+            echo
+            echo "- Branch: ci/pd2036f-dtb-audio-camera"
+            echo "- Defconfig: PD2036F_EX_KSU_defconfig"
+            echo "- Commit: $(git rev-parse HEAD)"
+            echo
+            echo "## Relevant generated configuration"
+            grep -E '^(CONFIG_(MODVERSIONS|SND_SOC_MT6357_ACCDET|SND_SOC_AW87XXX|RANDOMIZE_BASE)=|# CONFIG_RANDOMIZE_BASE is not set)' out/.config
+          } > out/ABI-AUDIT.md
+
+      - name: Build kernel and modules
+        run: |
+          set -euo pipefail
+          make -j2 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- O=out Image modules
+
+      - name: Collect ABI audit outputs
+        run: |
+          set -euo pipefail
+          test -s out/Module.symvers
+          mkdir -p out/abi-audit
+          cp out/Module.symvers out/abi-audit/Module.symvers
+          cp out/.config out/abi-audit/kernel.config
+          cp out/ABI-AUDIT.md out/abi-audit/ABI-AUDIT.md
+          find out -type f -name '*.ko' -printf '%p (%s bytes)\n' | sort > out/abi-audit/built-modules.txt
+          grep -E '(^|[[:space:]])(mtk_get_gpu_memory_usage|ion_mm_heap_total_memory|trace_event_buffer_reserve|trace_event_reg|regmap_read|snd_soc_jack_report)([[:space:]]|$)' out/Module.symvers > out/abi-audit/relevant-symbols.txt || true
+          {
+            echo
+            echo "## Build outputs"
+            echo "- Module.symvers: $(wc -l < out/Module.symvers) entries"
+            echo "- Built modules: $(wc -l < out/abi-audit/built-modules.txt)"
+            echo
+            echo "## Relevant exported symbols"
+            cat out/abi-audit/relevant-symbols.txt
+            echo
+            echo "## Module list"
+            cat out/abi-audit/built-modules.txt
+          } >> out/abi-audit/ABI-AUDIT.md
+          cat out/abi-audit/ABI-AUDIT.md
+
+      - name: Upload ABI audit artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pd2036f-kernel-abi-audit
+          path: out/abi-audit/
+          if-no-files-found: error
+          retention-days: 14
