@@ -48,6 +48,15 @@ jobs:
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s legacy
           test -d drivers/kernelsu
 
+      - name: Apply PD2036F KernelSU string compatibility override
+        run: |
+          set -euo pipefail
+          compat_header="$RUNNER_TEMP/pd2036f-kernel_compat.h"
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository }}/b483e3cd609e848d9f21280ac80dda0659460326/drivers/kernelsu/compat/kernel_compat.h" -o "$compat_header"
+          echo "834d6e72a2aafb5857847b7fa74fdb02c850db6d4f64bb963cadfdb01b6e7e3f  $compat_header" | sha256sum -c -
+          test -f drivers/kernelsu/compat/kernel_compat.h
+          install -m 0644 "$compat_header" drivers/kernelsu/compat/kernel_compat.h
+
       - name: Generate and verify kernel configuration
         run: |
           set -euo pipefail
