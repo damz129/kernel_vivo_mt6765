@@ -8,6 +8,8 @@ on:
     paths:
       - '.github/workflows/pd2036f-kernel-abi-audit.yml'
       - 'arch/arm64/configs/PD2036F_EX_KSU_defconfig'
+      - 'sound/soc/mediatek/awinic/aw87xxx.c'
+      - 'arch/arm64/boot/dts/mediatek/k65v1_64_bsp_PD2036F_EX.dts'
 
 permissions:
   contents: read

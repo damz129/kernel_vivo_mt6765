@@ -1103,6 +1103,12 @@
 /* FLASHLIGHT END*/
 #include "mediatek/cust_vivo_PD2036F_EX.dtsi"
 #include "mediatek/vivo_soc_codec.dtsi"
+
+&i2c0 {
+	aw87xxx_i2c@58 {
+		awinic,stock-firmware-names;
+	};
+};
 //#include "mediatek/cust_mt6765_camera.dtsi"
 /*#include "mediatek/cust_mt6765_touch_1080x1920.dtsi"*/
 #include "mediatek/vivo_tp_setting/mtk-vivo-tp-PD2036F_EX.dtsi"

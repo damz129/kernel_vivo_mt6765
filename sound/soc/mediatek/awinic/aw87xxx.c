@@ -1216,6 +1216,9 @@ static int aw87xxx_update_cfg_name(struct aw87xxx *aw87xxx)
 	int i = 0;
 	uint8_t head_index = 0;
 	int cfg_size = 0;
+	struct device_node *np = aw87xxx->dev->of_node;
+	bool stock_names = of_property_read_bool(np, "awinic,stock-firmware-names") &&
+			   !of_find_property(np, "pa-channel", NULL);
 
 	memcpy(aw87xxx->cfg_name, aw87xxx_cfg_name, sizeof(aw87xxx_cfg_name));
 	head_index = sizeof(aw87xxx_head) - 1;
@@ -1227,7 +1230,7 @@ static int aw87xxx_update_cfg_name(struct aw87xxx *aw87xxx)
 		memcpy(aw87xxx->cfg_name[i] + head_index, buf, sizeof(buf) - 1);
 
 	for (i = 0; i < sizeof(aw87xxx->cfg_name) / AW87XXX_CFG_NAME_MAX; i++) {
-		if (aw87xxx->channel[0] != '-') {
+		if (!stock_names && aw87xxx->channel[0] != '-') {
 			cfg_size = strlen(aw87xxx->cfg_name[i]);
 			memcpy(aw87xxx->cfg_name[i] + cfg_size,
 			       aw87xxx->channel, strlen(aw87xxx->channel));
@@ -1246,8 +1249,11 @@ static int aw87xxx_update_cfg_name(struct aw87xxx *aw87xxx)
 		}
 	}
 
-	/*vamx bin */
-	if (aw87xxx->channel[0] != '-') {
+	/* VMAX firmware */
+	if (stock_names) {
+		strlcpy(aw87xxx->vmax_cfg_name, "aw87xxx_vmax.bin",
+			sizeof(aw87xxx->vmax_cfg_name));
+	} else if (aw87xxx->channel[0] != '-') {
 		memcpy(aw87xxx->vmax_cfg_name, aw87xxx_vmax_cfg_name,
 		       strlen(aw87xxx_vmax_cfg_name));
 		memcpy(aw87xxx->vmax_cfg_name + head_index, buf, sizeof(buf) - 1);
