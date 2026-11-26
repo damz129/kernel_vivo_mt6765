@@ -7,6 +7,7 @@ on:
       - ci/pd2036f-dtb-audio-camera
     paths:
       - '.github/workflows/pd2036f-kernel-abi-audit.yml'
+      - 'arch/arm64/configs/PD2036F_EX_KSU_defconfig'
 
 permissions:
   contents: read
@@ -64,6 +65,7 @@ jobs:
           make ARCH=arm64 CC=clang LD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE="$ABI_CROSS64" CROSS_COMPILE_ARM32="$ABI_CROSS32" DTC_EXT=dtc O=out PD2036F_EX_KSU_defconfig
           grep -qx 'CONFIG_MODVERSIONS=y' out/.config
           grep -qx 'CONFIG_SND_SOC_MT6357_ACCDET=m' out/.config
+          grep -qx 'CONFIG_SWITCH=y' out/.config
           grep -qx 'CONFIG_SND_SOC_AW87XXX=y' out/.config
           grep -qx '# CONFIG_RANDOMIZE_BASE is not set' out/.config
           {
@@ -73,10 +75,10 @@ jobs:
             echo "- Defconfig: PD2036F_EX_KSU_defconfig"
             echo "- Commit: $(git rev-parse HEAD)"
             echo "- Compiler: $(clang --version | head -n 1)"
-            echo "- ABI audit uses the source branch directly; optional build-kernel KernelSU compatibility file overrides are not applied."
+            echo "- ABI audit builds the checked-out commit with the pinned KernelSU string compatibility header."
             echo
             echo "## Relevant generated configuration"
-            grep -E '^(CONFIG_(MODVERSIONS|SND_SOC_MT6357_ACCDET|SND_SOC_AW87XXX|RANDOMIZE_BASE)=|# CONFIG_RANDOMIZE_BASE is not set)' out/.config
+            grep -E '^(CONFIG_(MODVERSIONS|SWITCH|SND_SOC_MT6357_ACCDET|SND_SOC_AW87XXX|RANDOMIZE_BASE)=|# CONFIG_RANDOMIZE_BASE is not set)' out/.config
           } > out/ABI-AUDIT.md
 
       - name: Build kernel and modules
