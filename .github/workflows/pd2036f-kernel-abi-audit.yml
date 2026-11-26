@@ -2,6 +2,11 @@ name: PD2036F Kernel ABI Audit
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - ci/pd2036f-dtb-audio-camera
+    paths:
+      - '.github/workflows/pd2036f-kernel-abi-audit.yml'
 
 permissions:
   contents: read
@@ -14,12 +19,28 @@ jobs:
       - name: Checkout experimental branch
         uses: actions/checkout@v4
         with:
-          ref: ci/pd2036f-dtb-audio-camera
+          ref: ${{ github.sha }}
 
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential bc bison flex libssl-dev libelf-dev libncurses-dev dwarves gcc-aarch64-linux-gnu python3
+          sudo apt-get install -y build-essential bc bison flex libssl-dev libelf-dev libncurses-dev dwarves device-tree-compiler wget curl python3
+
+      - name: Install toolchains matching build-kernel config.env
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/pd2036f-toolchain"/{clang,gcc64,gcc32}
+          cd "$RUNNER_TEMP/pd2036f-toolchain"
+          wget -q -O clang.tar.gz https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android11-mainline-release/clang-r383902.tar.gz
+          tar -xzf clang.tar.gz -C clang
+          wget -q -O gcc64.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
+          tar -xzf gcc64.tar.gz -C gcc64
+          wget -q -O gcc32.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/+archive/refs/tags/android-12.1.0_r27.tar.gz
+          tar -xzf gcc32.tar.gz -C gcc32
+          echo "$RUNNER_TEMP/pd2036f-toolchain/clang/bin" >> "$GITHUB_PATH"
+          echo "ABI_CROSS64=$RUNNER_TEMP/pd2036f-toolchain/gcc64/bin/aarch64-linux-android-" >> "$GITHUB_ENV"
+          echo "ABI_CROSS32=$RUNNER_TEMP/pd2036f-toolchain/gcc32/bin/arm-linux-androideabi-" >> "$GITHUB_ENV"
+          "$RUNNER_TEMP/pd2036f-toolchain/clang/bin/clang" --version
 
       - name: Setup KernelSU Next
         run: |
@@ -31,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           find . -name 'Kconfig*' -type f -exec sed -i 's/\r$//' {} +
-          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- O=out PD2036F_EX_KSU_defconfig
+          make ARCH=arm64 CC=clang LD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE="$ABI_CROSS64" CROSS_COMPILE_ARM32="$ABI_CROSS32" DTC_EXT=dtc O=out PD2036F_EX_KSU_defconfig
           grep -qx 'CONFIG_MODVERSIONS=y' out/.config
           grep -qx 'CONFIG_SND_SOC_MT6357_ACCDET=m' out/.config
           grep -qx 'CONFIG_SND_SOC_AW87XXX=y' out/.config
@@ -42,6 +63,8 @@ jobs:
             echo "- Branch: ci/pd2036f-dtb-audio-camera"
             echo "- Defconfig: PD2036F_EX_KSU_defconfig"
             echo "- Commit: $(git rev-parse HEAD)"
+            echo "- Compiler: $(clang --version | head -n 1)"
+            echo "- ABI audit uses the source branch directly; optional build-kernel KernelSU compatibility file overrides are not applied."
             echo
             echo "## Relevant generated configuration"
             grep -E '^(CONFIG_(MODVERSIONS|SND_SOC_MT6357_ACCDET|SND_SOC_AW87XXX|RANDOMIZE_BASE)=|# CONFIG_RANDOMIZE_BASE is not set)' out/.config
@@ -50,7 +73,7 @@ jobs:
       - name: Build kernel and modules
         run: |
           set -euo pipefail
-          make -j2 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- O=out Image modules
+          make -j"$(nproc)" ARCH=arm64 CC=clang LD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE="$ABI_CROSS64" CROSS_COMPILE_ARM32="$ABI_CROSS32" DTC_EXT=dtc O=out Image modules
 
       - name: Collect ABI audit outputs
         run: |
@@ -58,6 +81,8 @@ jobs:
           test -s out/Module.symvers
           mkdir -p out/abi-audit
           cp out/Module.symvers out/abi-audit/Module.symvers
+          test -s out/sound/soc/mediatek/awinic/aw87xxx.o
+          sha256sum out/sound/soc/mediatek/awinic/aw87xxx.o > out/abi-audit/aw87xxx-object.sha256
           cp out/.config out/abi-audit/kernel.config
           cp out/ABI-AUDIT.md out/abi-audit/ABI-AUDIT.md
           find out -type f -name '*.ko' -printf '%p (%s bytes)\n' | sort > out/abi-audit/built-modules.txt
